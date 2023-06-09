@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { TRPCClientError } from '@trpc/client'
 import { NInput } from 'naive-ui'
 
-const props = defineProps<{
-  loading: boolean,
-}>()
+const { $client } = useNuxtApp()
+const message = useMessage()
 
+const loading = ref(false)
 const contentInput = ref<InstanceType<typeof NInput> | null>(null)
 const postContent = ref('')
 
@@ -14,9 +15,37 @@ const emit = defineEmits<{
 }>()
 
 function handleSubmit () {
-  emit('submit', postContent.value)
-  postContent.value = ''
-  contentInput.value?.focus()
+  submitPost(postContent.value).then(() => {
+    emit('submit', postContent.value)
+    postContent.value = ''
+    contentInput.value?.focus()
+  })
+}
+
+const submitPost = async (content: string) => {
+  if (!content) { return }
+  try {
+    loading.value = true
+    await $client.createPost.mutate({ content })
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(e)
+
+    if (e instanceof TRPCClientError) {
+      const errorMessage = JSON.parse(e.message)[0]
+
+      switch (e.data.code) {
+        case 'BAD_REQUEST':
+          message.error(errorMessage.message.replace(errorMessage.type.charAt(0).toUpperCase() + errorMessage.type.substring(1), errorMessage.path.join('.')))
+          break
+        default:
+          message.error('An unknown error occurred')
+          break
+      }
+    }
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -32,8 +61,8 @@ function handleSubmit () {
       type="textarea"
       placeholder="Whats on your mind?"
       size="large"
-      :loading="props.loading"
-      :disabled="props.loading"
+      :loading="loading"
+      :disabled="loading"
     />
     <div class="flex justify-end pt-3 pb-5">
       <NButton size="large" type="primary" ghost @click="handleSubmit">

@@ -1,9 +1,9 @@
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { router, protectedProcedure } from '../trpc'
+import { router, protectedProcedure, publicProcedure } from '../trpc'
 
 export const appRouter = router({
-  getPosts: protectedProcedure
+  getPosts: publicProcedure
     .input(
       z.object({
         cursor: z.string().optional(),
@@ -24,6 +24,12 @@ export const appRouter = router({
               name: true,
               image: true
             }
+          },
+          reactions: {
+            select: {
+              id: true,
+              type: true
+            }
           }
         },
         cursor: input.cursor
@@ -34,12 +40,118 @@ export const appRouter = router({
       })
 
       const direction = input.limit > 0 ? 1 : -1
-      const cursor = (direction === 1) ? result[result.length - 1]?.createdAt?.toISOString() : result[0]?.createdAt?.toISOString()
+      const cursor =
+        direction === 1
+          ? result[result.length - 1]?.createdAt?.toISOString()
+          : result[0]?.createdAt?.toISOString()
+
+      // map like and dislike counts
+      const data = result.map((post) => {
+        const likes = post.reactions.filter(
+          reaction => reaction.type === 'LIKE'
+        ).length
+        const dislikes = post.reactions.filter(
+          reaction => reaction.type === 'DISLIKE'
+        ).length
+
+        return {
+          author: post.author,
+          id: post.id,
+          content: post.content,
+          createdAt: post.createdAt,
+          likes,
+          dislikes
+        }
+      })
 
       return {
-        data: result,
+        data,
         cursor
       }
+    }),
+  getPost: publicProcedure
+    .input(
+      z.object({
+        id: z.string()
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const result = await ctx.prisma.post.findUnique({
+        where: {
+          id: input.id
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              image: true
+            }
+          },
+          reactions: {
+            select: {
+              id: true,
+              type: true
+            }
+          }
+        }
+      })
+
+      if (!result) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Post not found'
+        })
+      }
+
+      const likes = result.reactions.filter(
+        reaction => reaction.type === 'LIKE'
+      ).length
+      const dislikes = result.reactions.filter(
+        reaction => reaction.type === 'DISLIKE'
+      ).length
+
+      return {
+        author: result.author,
+        id: result.id,
+        content: result.content,
+        createdAt: result.createdAt,
+        likes,
+        dislikes
+      }
+    }),
+  getUserReactions: protectedProcedure
+    .input(
+      z.object({
+        postIds: z.array(z.string())
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.session?.user?.id as string
+      const postIds = input.postIds
+
+      const reactions = await ctx.prisma.reaction.findMany({
+        where: {
+          postId: {
+            in: postIds
+          },
+          userId
+        },
+        select: {
+          postId: true,
+          type: true
+        }
+      })
+
+      return reactions.reduce(
+        (acc: Record<string, (typeof reactions)[0]['type']>, reaction) => {
+          return {
+            ...acc,
+            [reaction.postId]: reaction.type
+          }
+        },
+        {}
+      )
     }),
   createPost: protectedProcedure
     .input(
@@ -48,10 +160,10 @@ export const appRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const email = ctx.session?.user?.email as string
+      const id = ctx.session?.user?.id as string
       const user = await ctx.prisma.user.findUnique({
         where: {
-          email
+          id
         }
       })
 
@@ -66,6 +178,54 @@ export const appRouter = router({
         data: {
           authorId: user.id,
           content: input.content
+        }
+      })
+    }),
+  addPostReaction: protectedProcedure
+    .input(
+      z.object({
+        postId: z.string(),
+        type: z.enum(['LIKE', 'DISLIKE'])
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session?.user?.id as string
+      const postId = input.postId
+      const type = input.type
+
+      await ctx.prisma.reaction.upsert({
+        where: {
+          postId_userId: {
+            postId,
+            userId
+          }
+        },
+        update: {
+          type
+        },
+        create: {
+          userId,
+          postId,
+          type
+        }
+      })
+    }),
+  removePostReaction: protectedProcedure
+    .input(
+      z.object({
+        postId: z.string()
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session?.user?.id as string
+      const postId = input.postId
+
+      await ctx.prisma.reaction.delete({
+        where: {
+          postId_userId: {
+            postId,
+            userId
+          }
         }
       })
     }),
@@ -98,27 +258,26 @@ export const appRouter = router({
         }
       })
     }),
-  getMyProfile: protectedProcedure
-    .query(async ({ ctx }) => {
-      const id = ctx.session?.user?.id
-      if (!id) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'You must be logged in to update your profile'
-        })
-      }
-
-      return await ctx.prisma.user.findUnique({
-        where: {
-          id
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
+  getMyProfile: protectedProcedure.query(async ({ ctx }) => {
+    const id = ctx.session?.user?.id
+    if (!id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You must be logged in to update your profile'
       })
+    }
+
+    return await ctx.prisma.user.findUnique({
+      where: {
+        id
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
     })
+  })
 })
 
 // export type definition of API

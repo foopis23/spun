@@ -112,7 +112,7 @@ onMounted(() => {
           <NInput v-model:value="formValue.name" placeholder="John Doe" />
         </NFormItem>
         <NFormItem label="Email" path="email">
-          <NInput v-model:value="formValue.email" placeholder="john.doe@example." disabled />
+          <NInput v-model:value="formValue.email" placeholder="john.doe@example.com" disabled />
         </NFormItem>
         <NFormItem>
           <NButton type="primary" ghost :disabled="!isDirty" @click="handleSubmit">

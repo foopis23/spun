@@ -84,7 +84,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <ScrollObserver class="px-8" @change="handleScrollStateChange">
+  <ScrollObserver class="px-8 py-4" @change="handleScrollStateChange">
     <NewPostForm v-if="allowNewPosts" @submit="loadHead()" />
     <template v-if="posts.length > 0">
       <PostCard
@@ -93,6 +93,7 @@ onMounted(() => {
         :key="post.id"
         :post="post"
         :user-reaction="userReactions[post.id]"
+        class="my-8"
         @reaction-change="refreshOne(post.id)"
       />
     </template>

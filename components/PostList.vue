@@ -42,7 +42,7 @@ const { data: posts, loadTail, loadHead, headCursor } = useAccumulativeQuery(
 
     // a bit hacky, but its fine :shrug:
     if (posts.value.length === 0 && res.data.length > 0) {
-      headCursor.value = res.data[0].createdAt.toISOString()
+      headCursor.value = res.data[0].id
     }
 
     if (res.cursor) {
@@ -69,7 +69,7 @@ function handleScrollStateChange (state: string) {
       break
     case 'top':
       if (props.refreshInterval) {
-        fetchNewPostsInterval = setInterval(loadHead, 5000)
+        fetchNewPostsInterval = setInterval(loadHead, props.refreshInterval)
       }
       loadHead()
       break

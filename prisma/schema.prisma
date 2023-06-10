@@ -37,6 +37,7 @@ model Session {
 model User {
   id            String    @id @default(cuid())
   name          String?
+  bio           String?
   email         String?   @unique
   emailVerified DateTime?
   image         String?
@@ -61,8 +62,6 @@ model Post {
   author    User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   reactions  Reaction[]
-
-  @@unique([createdAt]) // I feel like this doesn't scale but createdAt has to be unique so that I can do cursor based pagination
 
   @@index(fields: [authorId])
 }

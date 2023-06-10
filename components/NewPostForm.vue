@@ -26,17 +26,15 @@ const submitPost = async (content: string) => {
   if (!content) { return }
   try {
     loading.value = true
-    await $client.createPost.mutate({ content })
+    await $client.post.create.mutate({ content })
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error(e)
 
     if (e instanceof TRPCClientError) {
-      const errorMessage = JSON.parse(e.message)[0]
-
       switch (e.data.code) {
         case 'BAD_REQUEST':
-          message.error(errorMessage.message.replace(errorMessage.type.charAt(0).toUpperCase() + errorMessage.type.substring(1), errorMessage.path.join('.')))
+          message.error(e.message)
           break
         default:
           message.error('An unknown error occurred')

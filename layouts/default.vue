@@ -13,6 +13,10 @@ const userDropdownOptions = computed(() => [
     key: 'profile'
   },
   {
+    label: 'Edit Account',
+    key: 'edit-account'
+  },
+  {
     label: 'Logout',
     key: 'logout'
   }
@@ -26,7 +30,10 @@ function handleSelect (value: string) {
       })
       break
     case 'profile':
-      router.push('/profile')
+      router.push(`/profile/${(session.value?.user as any)?.id}`)
+      break
+    case 'edit-account':
+      router.push('/edit-account')
       break
   }
 }
@@ -38,7 +45,7 @@ function handleSelect (value: string) {
       <div class="title-bar flex justify-between py-5">
         <div class="flex items-center">
           <slot name="preTitle" />
-          <h1 class="text-3xl font-bold">
+          <h1 class="text-2xl font-bold">
             <slot name="title">
               Home
             </slot>
@@ -54,12 +61,8 @@ function handleSelect (value: string) {
         </NDropdown>
       </div>
     </div>
-    <div class="flex-grow overflow-hidden pb-1">
+    <div class="flex-grow overflow-hidden pb-1 flex flex-col">
       <slot />
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>

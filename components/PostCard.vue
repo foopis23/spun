@@ -7,7 +7,7 @@ const { $client } = useNuxtApp()
 
 const rotationNumber = Math.floor(Math.random() * 4) + 1
 const props = defineProps<{
-  post: inferRouterOutputs<AppRouter>['getPosts']['data'][0],
+  post: inferRouterOutputs<AppRouter>['post']['getAll']['data'][0],
   userReaction: 'DISLIKE' | 'LIKE' | undefined,
 }>()
 
@@ -24,9 +24,9 @@ function formatDate (date: Date) {
 
 async function handleReactionClick (type: 'LIKE' | 'DISLIKE') {
   if (props.userReaction === type) {
-    await $client.removePostReaction.mutate({ postId: props.post.id })
+    await $client.post.removeReaction.mutate({ postId: props.post.id })
   } else {
-    await $client.addPostReaction.mutate({ type, postId: props.post.id })
+    await $client.post.addReaction.mutate({ type, postId: props.post.id })
   }
 
   emit('reactionChange', props.userReaction === type ? undefined : type)
@@ -39,10 +39,14 @@ async function handleReactionClick (type: 'LIKE' | 'DISLIKE') {
     :class="'rotate-' + rotationNumber"
   >
     <div class="flex gap-2 flex-grow">
-      <NAvatar class="flex-grow-0 flex-shrink-0" :src="post.author.image ?? ''" round />
+      <NuxtLink :to="`/profile/${post.author.id}`">
+        <NAvatar class="flex-grow-0 flex-shrink-0" :src="post.author.image ?? ''" round />
+      </NuxtLink>
       <div class="flex-grow">
         <span class="text-lg mb-1">
-          <span class="mr-2">{{ post.author.name }}</span>
+          <NuxtLink :to="`/profile/${post.author.id}`">
+            <span class="mr-2">{{ post.author.name }}</span>
+          </NuxtLink>
           <span class="text-gray-400 text-xs">
             {{ formatDate(post.createdAt) }}
           </span><br>

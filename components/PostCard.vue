@@ -35,15 +35,15 @@ async function handleReactionClick (type: 'LIKE' | 'DISLIKE') {
 
 <template>
   <div
-    class="post h-80 w-80 m-auto border border-gray-200 p-2 flex flex-col break-all"
+    class="post h-80 w-80 m-auto border border-gray-200 p-2 flex flex-col gap-2 break-words overflow-x-hidden overflow-y-hidden"
     :class="'rotate-' + rotationNumber"
   >
-    <div class="flex gap-2 flex-grow">
+    <div class="scrollbar flex gap-2 flex-grow flex-shrink overflow-x-auto overflow-y-auto">
       <NuxtLink :to="`/profile/${post.author.id}`">
         <NAvatar class="flex-grow-0 flex-shrink-0" :src="post.author.image ?? ''" round />
       </NuxtLink>
-      <div class="flex-grow">
-        <span class="text-lg mb-1">
+      <div class="flex-grow flex-col">
+        <span class="text-lg mb-1 flex-grow-0">
           <NuxtLink :to="`/profile/${post.author.id}`">
             <span class="mr-2">{{ post.author.name }}</span>
           </NuxtLink>
@@ -57,7 +57,7 @@ async function handleReactionClick (type: 'LIKE' | 'DISLIKE') {
       </div>
     </div>
 
-    <div class="flex gap-4">
+    <div class="flex flex-grow-0 flex-shrink-0 gap-4">
       <div
         class="hover:cursor-pointer"
         :class="{ 'text-green-400': userReaction === 'LIKE', 'text-gray-500': userReaction !== 'LIKE', 'hover:text-gray-200': userReaction !== 'LIKE', 'hover:text-green-700': userReaction === 'LIKE'}"
@@ -206,5 +206,19 @@ async function handleReactionClick (type: 'LIKE' | 'DISLIKE') {
 
 .rotate-4 {
   animation: rotate-4 var(--rotate-duration-4) normal linear infinite;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.5);        /* color of the tracking area */
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #555;    /* color of the scroll thumb */
+  border-radius: 1000px;       /* roundness of the scroll thumb */
 }
 </style>

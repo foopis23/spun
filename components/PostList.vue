@@ -9,9 +9,12 @@ const props = defineProps<{
 
 let fetchNewPostsInterval: number | NodeJS.Timer | undefined
 const { $client } = useNuxtApp()
+const { data: session } = useAuth()
 const userReactions = reactive<Record<string, 'LIKE' | 'DISLIKE'>>({})
+const router = useRouter()
 
 async function loadUserReactionsFor (postIds: string[]) {
+  if (!session.value?.user) { return }
   const reactions = await $client.my.getReactions.query({ postIds })
   for (const [postId, reaction] of Object.entries(reactions)) {
     userReactions[postId] = reaction
@@ -85,7 +88,17 @@ onMounted(() => {
 
 <template>
   <ScrollObserver class="px-8 py-4" @change="handleScrollStateChange">
-    <NewPostForm v-if="allowNewPosts" @submit="loadHead()" />
+    <template v-if="allowNewPosts">
+      <NewPostForm v-if="session?.user" @submit="loadHead()" />
+      <div v-else class="pt-8 pb-20 text-center">
+        <p class="text-xl text-center text-gray-400">
+          Login to create a post.
+        </p>
+        <NButton size="large" type="primary" class="mt-2" ghost @click="router.push('/login')">
+          Login
+        </NButton>
+      </div>
+    </template>
     <template v-if="posts.length > 0">
       <PostCard
         v-for="(post, index) in posts"

@@ -4,7 +4,7 @@ import Discord from '@vicons/fa/Discord'
 import Twitter from '@vicons/fa/Twitter'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth'],
   auth: {
     unauthenticatedOnly: true,
     navigateAuthenticatedTo: '/'

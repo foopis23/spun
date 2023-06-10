@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ChevronLeft from '@vicons/fa/ArrowLeft'
 
-definePageMeta({ middleware: 'auth', layout: false })
+definePageMeta({ layout: false })
 
 const { $client } = useNuxtApp()
 const { params } = useRoute()

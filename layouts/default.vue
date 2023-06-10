@@ -51,7 +51,7 @@ function handleSelect (value: string) {
             </slot>
           </h1>
         </div>
-        <NDropdown trigger="hover" :options="userDropdownOptions" @select="handleSelect">
+        <NDropdown v-if="session?.user" trigger="hover" :options="userDropdownOptions" @select="handleSelect">
           <NAvatar
             class="flex-grow-0 flex-shrink-0 hover:cursor-pointer"
             :src="session?.user?.image ?? ''"
@@ -59,6 +59,11 @@ function handleSelect (value: string) {
             size="large"
           />
         </NDropdown>
+        <div v-else>
+          <NButton type="primary" ghost @click="router.push('/login')">
+            Login
+          </NButton>
+        </div>
       </div>
     </div>
     <div class="flex-grow overflow-hidden pb-1 flex flex-col">

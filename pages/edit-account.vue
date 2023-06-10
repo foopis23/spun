@@ -35,8 +35,10 @@ const isDirty = computed(() => {
 function updateBaseValue (value: FormValue) {
   previousProfile.email = value.email
   previousProfile.name = value.name
+  previousProfile.bio = value.bio
   formValue.email = value.email
   formValue.name = value.name
+  formValue.bio = value.bio
 }
 
 async function handleSubmit (e: MouseEvent) {

@@ -57,7 +57,7 @@ const submitPost = async (content: string) => {
       show-count
       name="content"
       type="textarea"
-      placeholder="Whats on your mind?"
+      placeholder="What's on your mind?"
       size="large"
       :loading="loading"
       :disabled="loading"

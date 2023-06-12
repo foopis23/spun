@@ -3,6 +3,10 @@ import Github from '@vicons/fa/Github'
 import Discord from '@vicons/fa/Discord'
 import Twitter from '@vicons/fa/Twitter'
 
+useHead({
+  title: 'Spun - Login'
+})
+
 definePageMeta({
   middleware: ['auth'],
   auth: {

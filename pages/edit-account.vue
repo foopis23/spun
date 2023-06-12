@@ -8,6 +8,7 @@ type FormValue = {
   bio: string | null
 }
 
+useHead({ title: 'Spun - Edit Account' })
 definePageMeta({ middleware: 'auth', layout: false })
 
 // composables

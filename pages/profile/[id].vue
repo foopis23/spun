@@ -1,14 +1,40 @@
 <script setup lang="ts">
 import ChevronLeft from '@vicons/fa/ArrowLeft'
 
-definePageMeta({ layout: false })
-
 const { $client } = useNuxtApp()
 const { params } = useRoute()
 
 const { data: user } = $client.user.getUser.useQuery({
   id: (typeof params.id === 'string') ? params.id : params.id[0]
 })
+
+const title = computed(() => {
+  if (!user.value) {
+    return 'Profile'
+  }
+
+  return `Spun - ${user.value.name}'s Profile`
+})
+
+const description = computed(() => {
+  if (!user.value) {
+    return ''
+  }
+
+  return `${user.value.bio}`
+})
+
+useHead({
+  title,
+  meta: [
+    {
+      hid: 'description',
+      name: 'description',
+      content: description
+    }
+  ]
+})
+definePageMeta({ layout: false })
 </script>
 
 <template>
